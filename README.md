@@ -15,7 +15,7 @@ A SJSU CS Systems Group Disconnected Data Distribution project under Prof. Ben R
 - Download and install Android Studio https://developer.android.com/studio 
 - Clone this repository
 ```
-git clone 
+git clone https://github.com/SJSU-CS-systems-group/SimpleWifiDirect
 ```
 - Open up Android Studio. If it is your first time opening up Android Studio once you have finished configuring any settings that pop up when you get to a screen with a button that has an option to create a new project click the Open button next to it instead and open up the repository you just cloned.
 
