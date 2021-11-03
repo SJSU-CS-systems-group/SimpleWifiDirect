@@ -1,5 +1,4 @@
 package sjsu.ddd.android.wifidirect;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.IntentFilter;
@@ -10,78 +9,103 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Build;
 import android.os.Looper;
 import android.util.Log;
-import android.view.View;
-import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.lifecycle.DefaultLifecycleObserver;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleObserver;
+import androidx.lifecycle.LifecycleOwner;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
+
+/**
+ * Main WifiDirect class contains the various
+ */
 public class WifiDirectManager {
 
-    public WifiP2pManager manager;
-    public WifiP2pManager.Channel channel;
+    private WifiP2pManager manager;
+    private WifiP2pManager.Channel channel;
+    private Context context;
+    private Lifecycle lifeCycle;
+    private WifiDirectLifeCycleObserver lifeCycleObserver;
     private final IntentFilter intentFilter = new IntentFilter();
+    private WifiDirectBroadcastReceiver receiver;
 
-    public WifiDirectManager(Context context) {
-        this.initOwner(context);
+    /**
+     * Ctor
+     * @param context AppcompatActivity Context returned with a
+     *                AppCompatActivity.getApplication() call
+     * @param lifeCycle AppActivity Lifecycle returned with a
+     *                  AppCompatActivity.getLifeCycle() call
+     */
+    public WifiDirectManager(Context context, Lifecycle lifeCycle) {
+        this.context = context;
+        this.initOwner(this.context);
         this.registerIntents();
+        this.lifeCycle = lifeCycle;
+        this.receiver = new WifiDirectBroadcastReceiver(this);
+        this.lifeCycleObserver = new WifiDirectLifeCycleObserver(this.context, this, this.receiver);
+
+        this.lifeCycle.addObserver(lifeCycleObserver);
     }
 
-    public void initOwner(Context context) {
+    private void initOwner(Context context) {
         this.manager = (WifiP2pManager) context.getSystemService(Context.WIFI_P2P_SERVICE);
         this.channel = this.manager.initialize(context, Looper.getMainLooper(), null);
     }
 
-    public void initClient(Context context) {
+    private void initClient(Context context) {
         this.manager = (WifiP2pManager) context.getSystemService(Context.WIFI_P2P_SERVICE);
         this.channel = this.manager.initialize(context, Looper.getMainLooper(), null);
     }
 
-    public void registerIntents() {
+    private void registerIntents() {
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
     }
 
-//    /**
-//     * Discovers WifiDirect peers for this device.
-//     * @return
-//     */
-//    @SuppressLint("MissingPermission")
-//    public Future<Boolean> discoverPeers() {
-//        CompletableFuture<Boolean> cFuture = new CompletableFuture<>();
-//        this.manager.discoverPeers(this.channel, new WifiP2pManager.ActionListener() {
-//
-//            @Override
-//            public void onSuccess() {
-//             cFuture.complete(true);
-//            }
-//
-//            @Override
-//            public void onFailure(int reasonCode) {
-//                cFuture.complete(false);
-//            }
-//        });
-//        return cFuture;
-//    }
-@SuppressLint("MissingPermission")
-    public void discoverPeers() {
+
+    /**
+     * Discovers WifiDirect peers for this device.
+     * @return
+     */
+    @SuppressLint("MissingPermission")
+    public CompletableFuture<Boolean> discoverPeers() {
+        CompletableFuture<Boolean> cFuture = new CompletableFuture<>();
         this.manager.discoverPeers(this.channel, new WifiP2pManager.ActionListener() {
 
             @Override
             public void onSuccess() {
-                Log.d("sDebug", " WifiDirect Discovery Success");
+             cFuture.complete(true);
             }
 
             @Override
             public void onFailure(int reasonCode) {
-                Log.d("sDebug", "WifiDirect Discovery Failure");
+                cFuture.complete(false);
             }
         });
+        return cFuture;
     }
+//@SuppressLint("MissingPermission")
+//    public void discoverPeers() {
+//        this.manager.discoverPeers(this.channel, new WifiP2pManager.ActionListener() {
+//
+//            @Override
+//            public void onSuccess() {
+//                Log.d("sDebug", " WifiDirect Discovery Success");
+//            }
+//
+//            @Override
+//            public void onFailure(int reasonCode) {
+//                Log.d("sDebug", "WifiDirect Discovery Failure");
+//            }
+//        });
+//    }
 
     @SuppressLint("MissingPermission")
     public Future<Boolean>  connect(WifiP2pConfig config) {
@@ -139,7 +163,7 @@ public class WifiDirectManager {
 
     /**
      * Get this manager's Channel
-     * @return
+     * @return this WifiP2pManager.Channel
      */
     public WifiP2pManager.Channel getChannel() {
         return this.channel;
@@ -147,7 +171,7 @@ public class WifiDirectManager {
 
     /**
      * Get this manager's IntentFilter with the intents registered
-     * @return
+     * @return this IntentFilter
      */
     public IntentFilter getIntentFilter() {
         return this.intentFilter;

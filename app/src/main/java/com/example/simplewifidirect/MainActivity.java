@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import android.content.Context;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -18,15 +19,13 @@ import sjsu.ddd.android.wifidirect.WifiDirectManager;
 import sjsu.ddd.android.wifidirect.WifiDirectBroadcastReceiver;
 
 /**
- * 1. Entry point of android app
+ * 1. Entry point of Android app
  */
 public class MainActivity extends AppCompatActivity {
     public static final String TAG = "wDebug";
 
-    // 2. Activity requires these two instance variables
+    // 2. MainActivity requires only the WifiDirectManager
     private WifiDirectManager wifiDirectManager;
-    private WifiDirectBroadcastReceiver receiver;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,45 +34,33 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // 3. Initialize the manager here
-        wifiDirectManager = new WifiDirectManager(this.getApplication());
+        wifiDirectManager = new WifiDirectManager(this.getApplication(), this.getLifecycle());
 
-        // button for testing
-        final Button showToastBtn=findViewById(R.id.discoverPeers);
+        // button for showing off discover peers
+        final Button showToastBtn = findViewById(R.id.discoverPeers);
         showToastBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(MainActivity.this,"I am the discover peers fear me",Toast.LENGTH_SHORT).show();
-
-                Log.d(TAG, "Firing off the discover peers");
-
-                // 4. Discover wifi direct Peers
-                wifiDirectManager.discoverPeers();
-                Log.d(TAG, "Finished discoverPeers onClick");
+                CompletableFuture<Boolean> completedFuture = wifiDirectManager.discoverPeers();
+                completedFuture.thenApply((b) -> {
+                    Toast.makeText(MainActivity.this, "Did DiscoverPeers succeed?: " + b, Toast.LENGTH_SHORT).show();
+                    return b;
+                });
+                String message = "Did i discover some peers?: ";
+                Log.d(TAG, message);
             }
         });
     }
-    @Override
-    public void onResume() {
-        super.onResume();
-        receiver = new WifiDirectBroadcastReceiver(wifiDirectManager);
-        registerReceiver(receiver, wifiDirectManager.getIntentFilter());
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        unregisterReceiver(receiver);
-    }
-
-// Future code please for later
-//               Future<Boolean> completedFuture =  wifiDirectManager.discoverPeers();
-//                try {
-//                    Boolean result = completedFuture.get();
-//                    String message = "Did i discover some peers?: " + result.booleanValue();
-//                    Log.d(TAG, message);
-//                } catch (ExecutionException e) {
-//                    Log.d(TAG, "Execution exception for discover peers");
-//                } catch (InterruptedException e) {
-//                    Log.d(TAG, "Interrupt exception for discover peers");
-//                }
+//    @Override
+//    public void onResume() {
+//        super.onResume();
+//        receiver = new WifiDirectBroadcastReceiver(wifiDirectManager);
+//        registerReceiver(receiver, wifiDirectManager.getIntentFilter());
+//    }
+//
+//    @Override
+//    public void onPause() {
+//        super.onPause();
+//        unregisterReceiver(receiver);
+//    }
 }
