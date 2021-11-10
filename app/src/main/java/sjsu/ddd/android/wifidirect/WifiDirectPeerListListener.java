@@ -9,6 +9,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * Discover Peers callback
+ */
 public class WifiDirectPeerListListener implements WifiP2pManager.PeerListListener
 {
     private List<WifiP2pDevice> devices = new ArrayList<>();
@@ -20,7 +23,7 @@ public class WifiDirectPeerListListener implements WifiP2pManager.PeerListListen
         boolean devicesAdded = this.devices.addAll(foundDevices);
 
         for(WifiP2pDevice d: this.devices) {
-            Log.d("sDebug", d.toString());
+            Log.d("wDebug", d.toString());
         }
     }
 }

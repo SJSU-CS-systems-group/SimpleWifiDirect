@@ -1,22 +1,21 @@
 package com.example.simplewifidirect;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import android.content.IntentFilter;
-import android.net.wifi.p2p.WifiP2pManager;
+
+import android.net.wifi.p2p.WifiP2pDevice;
+import android.net.wifi.p2p.WifiP2pGroup;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import android.content.Context;
-
+import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import sjsu.ddd.android.wifidirect.WifiDirectManager;
-import sjsu.ddd.android.wifidirect.WifiDirectBroadcastReceiver;
 
 /**
  * 1. Entry point of Android app
@@ -37,8 +36,8 @@ public class MainActivity extends AppCompatActivity {
         wifiDirectManager = new WifiDirectManager(this.getApplication(), this.getLifecycle());
 
         // button for showing off discover peers
-        final Button showToastBtn = findViewById(R.id.discoverPeers);
-        showToastBtn.setOnClickListener(new View.OnClickListener() {
+        final Button dPeerButton = findViewById(R.id.discoverPeers);
+        dPeerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 CompletableFuture<Boolean> completedFuture = wifiDirectManager.discoverPeers();
@@ -46,21 +45,61 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "Did DiscoverPeers succeed?: " + b, Toast.LENGTH_SHORT).show();
                     return b;
                 });
-                String message = "Did i discover some peers?: ";
+                String message = "I tried to find some peers!: ";
                 Log.d(TAG, message);
             }
         });
+
+        final Button cGroupButton = findViewById(R.id.createGroup);
+        cGroupButton.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.Q)
+            @Override
+            public void onClick(View view) {
+                CompletableFuture<Boolean> completedFuture = wifiDirectManager.createGroup();
+                completedFuture.thenApply((b) -> {
+                    Toast.makeText(MainActivity.this, "Did CreateGroup succeed?: " + b, Toast.LENGTH_SHORT).show();
+                    return b;
+                });
+                String message = "I tried making a group! ";
+                Log.d(TAG, message);
+            }
+        });
+
+        final Button rmButton = findViewById(R.id.removeGroup);
+        rmButton.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.Q)
+            @Override
+            public void onClick(View view) {
+                CompletableFuture<Boolean> completedFuture = wifiDirectManager.removeGroup();
+                completedFuture.thenApply((b) -> {
+                    Toast.makeText(MainActivity.this, "Did removeGroup succeed?: " + b, Toast.LENGTH_SHORT).show();
+                    return b;
+                });
+                String message = "I tried removing a group! ";
+                Log.d(TAG, message);
+            }
+        });
+
+        final Button cRButton = findViewById(R.id.requestGroupInfo);
+        cRButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                CompletableFuture<WifiP2pGroup> completedFuture = wifiDirectManager.requestGroupInfo();
+                completedFuture.thenApply((b) -> {
+                    Toast.makeText(MainActivity.this,
+                            "I request groupIinfo: ", Toast.LENGTH_SHORT).show();
+                    WifiP2pGroup group = b;
+                    Collection<WifiP2pDevice> devices = group.getClientList();
+                    Log.d(TAG, "Looping through group devices");
+                    for(WifiP2pDevice d: devices) {
+                        Log.d("wDebug", d.toString());
+                    }
+                    return b;
+                });
+                String message = "I tried making a group! ";
+                Log.d(TAG, message);
+            }
+        });
+
     }
-//    @Override
-//    public void onResume() {
-//        super.onResume();
-//        receiver = new WifiDirectBroadcastReceiver(wifiDirectManager);
-//        registerReceiver(receiver, wifiDirectManager.getIntentFilter());
-//    }
-//
-//    @Override
-//    public void onPause() {
-//        super.onPause();
-//        unregisterReceiver(receiver);
-//    }
 }

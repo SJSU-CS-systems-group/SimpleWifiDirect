@@ -1,7 +1,9 @@
 package sjsu.ddd.android.wifidirect;
-
 import android.net.wifi.p2p.WifiP2pDevice;
 
+/**
+ * Wrapper class for WifiP2pDevice
+ */
 public class WifiDirectPeerDevice {
 
     private WifiP2pDevice device;
