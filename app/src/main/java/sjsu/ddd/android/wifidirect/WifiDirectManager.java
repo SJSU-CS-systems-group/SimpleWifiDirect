@@ -1,14 +1,14 @@
 package sjsu.ddd.android.wifidirect;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
+import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pGroup;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Build;
 import android.os.Looper;
@@ -16,58 +16,83 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
-import androidx.core.app.ActivityCompat;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.Lifecycle;
-import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
 
 /**
- * Main WifiDirect class contains the various
+ * Main WifiDirect class
+ * Contains wrapper methods around common WifiDirect tasks
  */
-public class WifiDirectManager {
+public class WifiDirectManager implements WifiP2pManager.ConnectionInfoListener, WifiP2pManager.PeerListListener {
 
     public static final String TAG = "wDebug";
+    private final IntentFilter intentFilter = new IntentFilter();
+
     private WifiP2pManager manager;
     private WifiP2pManager.Channel channel;
     private Context context;
     private Lifecycle lifeCycle;
     private WifiDirectLifeCycleObserver lifeCycleObserver;
-    private final IntentFilter intentFilter = new IntentFilter();
     private WifiDirectBroadcastReceiver receiver;
+    private ArrayList<WifiP2pDevice> discoveredPeers;
+    private String wifiDirectGroupHostIP;
 
     /**
      * Ctor
+     *
      * @param context AppcompatActivity Context returned with a
-     *                AppCompatActivity.getApplication() call
+     *                AppCompatActivity.getApplication() call in
+     *                your main activity
      * @param lifeCycle AppActivity Lifecycle returned with a
-     *                  AppCompatActivity.getLifeCycle() call
+     *                  AppCompatActivity.getLifeCycle() call in
+     *                  your main activity
      */
     public WifiDirectManager(Context context, Lifecycle lifeCycle) {
         this.context = context;
         this.initOwner(this.context);
         this.registerIntents();
+
         this.lifeCycle = lifeCycle;
         this.receiver = new WifiDirectBroadcastReceiver(this);
-        this.lifeCycleObserver = new WifiDirectLifeCycleObserver(this.context, this, this.receiver);
 
+        this.lifeCycleObserver = new WifiDirectLifeCycleObserver(this);
         this.lifeCycle.addObserver(lifeCycleObserver);
+
+        this.discoveredPeers = new ArrayList<WifiP2pDevice>();
+        this.wifiDirectGroupHostIP = "";
     }
 
+    /**
+     * Initialize this WifiDirect device as the owner
+     * @param context AppcompatActivity Context
+     */
     private void initOwner(Context context) {
         this.manager = (WifiP2pManager) context.getSystemService(Context.WIFI_P2P_SERVICE);
         this.channel = this.manager.initialize(context, Looper.getMainLooper(), null);
     }
 
+    /**
+     * Initialize this WifiDirect device as a peer device
+     * Right now no difference between owner and peer
+     * @param context AppcompatActivity Context
+     */
     private void initClient(Context context) {
         this.manager = (WifiP2pManager) context.getSystemService(Context.WIFI_P2P_SERVICE);
         this.channel = this.manager.initialize(context, Looper.getMainLooper(), null);
     }
 
+    /**
+     * Register Android Intents more commonly known as events we
+     * want to listen to for this device.
+     */
     private void registerIntents() {
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
@@ -75,10 +100,9 @@ public class WifiDirectManager {
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
     }
 
-
     /**
      * Discovers WifiDirect peers for this device.
-     * @return true if discovery is successful false if not
+     * @return Completable Future true if discovery is successful false if not
      */
     @SuppressLint("MissingPermission")
     public CompletableFuture<Boolean> discoverPeers() {
@@ -97,19 +121,23 @@ public class WifiDirectManager {
         });
         return cFuture;
     }
-    @RequiresApi(api = Build.VERSION_CODES.Q)
-    private WifiP2pConfig buildGroupConfig(String networkName, String password) {
-        try {
-            WifiP2pConfig.Builder cBuilder = new WifiP2pConfig.Builder();
-            cBuilder.enablePersistentMode(true);
-            cBuilder.setNetworkName(networkName);
-            cBuilder.setPassphrase(password);
-            return cBuilder.build();
-        }
-        catch(Exception e) {
-            Log.d("wDebug", "exception " + e) ;
-        }
-        return null;
+
+    /**
+     * PeersListListener interface override function
+     * Activation function is this.manager.discoverPeers();
+     * Afterwards  WIFI_P2P_PEERS_CHANGED_ACTION in WifiDirectBroadcastReceiver
+     * is activated and manager.requestPeers() is called which leads to this
+     * function
+     *
+     * @param deviceList
+     */
+    @Override
+    public void onPeersAvailable(WifiP2pDeviceList deviceList) {
+        List<WifiP2pDevice> devices = new ArrayList<>();
+        Collection<WifiP2pDevice> foundDevices = deviceList.getDeviceList();
+        devices.addAll(foundDevices);
+
+        this.discoveredPeers = (ArrayList<WifiP2pDevice>) devices;
     }
 
     /**
@@ -118,9 +146,9 @@ public class WifiDirectManager {
      */
     @RequiresApi(api = Build.VERSION_CODES.Q)
     @SuppressLint("MissingPermission")
-    public CompletableFuture<Boolean> createGroup() {
-        WifiP2pConfig config = this.buildGroupConfig("DIRECT-XY-TestNetwork123",
-                "123456789");
+    public CompletableFuture<Boolean> createGroup(String networkName, String password) {
+        WifiP2pConfig config = this.buildGroupConfig(networkName,
+                password);
         CompletableFuture<Boolean> cFuture = new CompletableFuture<>();
         this.manager.createGroup(this.channel, config, new WifiP2pManager.ActionListener() {
 
@@ -139,8 +167,33 @@ public class WifiDirectManager {
         return cFuture;
     }
 
-    public CompletableFuture<Boolean> removeGroup() {
+    /**
+     * Build a WifiDirect group config allowing us to setup our
+     * group name and password
+     * @param networkName Name of the network must begin with DIRECT-XY
+     * @param password Password must be between 8 - 64 characters long
+     * @return
+     */
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    private WifiP2pConfig buildGroupConfig(String networkName, String password) {
+        try {
+            WifiP2pConfig.Builder cBuilder = new WifiP2pConfig.Builder();
+            cBuilder.enablePersistentMode(false);
+            cBuilder.setNetworkName(networkName);
+            cBuilder.setPassphrase(password);
+            return cBuilder.build();
+        }
+        catch(Exception e) {
+            Log.d("wDebug", "exception " + e) ;
+        }
+        return null;
+    }
 
+    /**
+     * Leave the current WifiDirect Group this device is connected to
+     * @return Future containing true if successful false if not
+     */
+    public CompletableFuture<Boolean> removeGroup() {
         CompletableFuture<Boolean> cFuture = new CompletableFuture<>();
         this.manager.removeGroup(this.channel, new WifiP2pManager.ActionListener() {
 
@@ -151,35 +204,8 @@ public class WifiDirectManager {
 
             @Override
             public void onFailure(int reasonCode) {
-                Log.d("wDebug","Failed to remove a group with reasonCode: " + reasonCode);
-                cFuture.complete(false);
-            }
-        });
-        return cFuture;
-    }
-
-    /**
-     * Create a WifiDirect group for other WifiDirect devices can connect to.
-     * @return true if discovery is successful false if not
-     */
-    @RequiresApi(api = Build.VERSION_CODES.Q)
-    @SuppressLint("MissingPermission")
-    public CompletableFuture<Boolean> createGroup(String name, String password) {
-
-        WifiP2pConfig config = this.buildGroupConfig("DIRECT-XY-TestNetwork123",
-                "123456789");
-        CompletableFuture<Boolean> cFuture = new CompletableFuture<>();
-        this.manager.createGroup(this.channel, config, new WifiP2pManager.ActionListener() {
-
-            @Override
-            public void onSuccess() {
-                cFuture.complete(true);
-            }
-
-            @Override
-            public void onFailure(int reasonCode) {
-
-                Log.d("wDebug","The reason: " + reasonCode);
+                Log.d("wDebug","Failed to remove a group with reasonCode: " +
+                        reasonCode + " Note: this could mean device was never part of a group");
                 cFuture.complete(false);
             }
         });
@@ -202,8 +228,11 @@ public class WifiDirectManager {
         return cFuture;
     }
 
-
-
+    /**
+     * Directly connect to a device with this WifiP2pConfig
+     * @param config Config of device to connect to
+     * @return Future containing true if WifiDirect connection successful false if not
+     */
     @SuppressLint("MissingPermission")
     public Future<Boolean> connect(WifiP2pConfig config) {
         CompletableFuture<Boolean> cFuture = new CompletableFuture<>();
@@ -222,33 +251,40 @@ public class WifiDirectManager {
         return cFuture;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
-    public Future<Boolean>  disconnect() {
-        CompletableFuture<Boolean> cFuture = new CompletableFuture<>();
-        this.manager.removeGroup(this.channel, new WifiP2pManager.ActionListener() {
-
-
-            @Override
-            public void onSuccess() {
-                cFuture.complete(true);
-            }
-
-            @Override
-            public void onFailure(int reasonCode) {
-                cFuture.complete(false);
-            }
-
-        });
-        return cFuture;
-    }
-
-    public void directConnection(WifiP2pDevice device) {
+    /**
+     * Get the config of this WifiP2pDevice
+     * @param device  WifiDirect device we want to make a config of
+     * @param isOwner Do we want to make device we're connect to group owner?
+     * @return WifiP2PConfig ready to be called by manager.connect()
+     */
+    public WifiP2pConfig makeConfig(WifiP2pDevice device, boolean isOwner) {
         WifiP2pConfig config = new WifiP2pConfig();
         config.deviceAddress = device.deviceAddress;
         config.wps.setup = WpsInfo.PBC;
-
-        //((DeviceListFragment.DeviceActionListener) getActivity()).connect(config);
+        if(isOwner) {
+            config.groupOwnerIntent = WifiP2pConfig.GROUP_OWNER_INTENT_MAX;
+        }
+        else {
+            config.groupOwnerIntent = WifiP2pConfig.GROUP_OWNER_INTENT_MIN;
+        }
+        return config;
     }
+
+    public ArrayList<WifiP2pDevice> getPeerList() {
+     return this.discoveredPeers;
+    }
+
+    /**
+     * In  WIFI_P2P_CONNECTION_CHANGED_ACTION
+     * @param info
+     */
+    @Override
+    public void onConnectionInfoAvailable(WifiP2pInfo info) {
+        String hostIP = info.groupOwnerAddress.getHostAddress();
+        Log.d(TAG, "This is the group host IP: " + hostIP);
+        this.wifiDirectGroupHostIP = hostIP;
+    }
+
 
     /**
      * "I want to see your manager"
@@ -259,7 +295,7 @@ public class WifiDirectManager {
     }
 
     /**
-     * Get this manager's Channel
+     * Get this manager's Activity Channel
      * @return this WifiP2pManager.Channel
      */
     public WifiP2pManager.Channel getChannel() {
@@ -270,7 +306,53 @@ public class WifiDirectManager {
      * Get this manager's IntentFilter with the intents registered
      * @return this IntentFilter
      */
-    public IntentFilter getIntentFilter() {
-        return this.intentFilter;
+    public IntentFilter getIntentFilter() { return this.intentFilter; }
+
+    /**
+     * Get the BroadCastReceiver
+     * @return the WifiDirectBroadcastReceiver
+     */
+    public WifiDirectBroadcastReceiver getReceiver() { return this.receiver; }
+
+    /**
+     * Get the App context associated with this WifiDirectManager
+     * @return the app context
+     */
+    public Context getContext() { return this.context; }
+
+    /**
+     * Inner Class to hook into activity Lifecycle functions
+     * and register/unregister BroadcastReceiver
+     * Note this may need to be modified when turning WifiDirectManager into
+     * a service
+     */
+    private class WifiDirectLifeCycleObserver implements DefaultLifecycleObserver {
+        public WifiDirectManager manager;
+
+        /**
+         * Ctor
+         * @param manager WifiDrectManager outer class
+         */
+        public WifiDirectLifeCycleObserver(WifiDirectManager manager) {
+            this.manager = manager;
+        }
+        /**
+         * Register the receiver on app open
+         * @param owner app's main activity
+         */
+        @Override
+        public void onResume(@NonNull LifecycleOwner owner) {
+            this.manager.getContext().registerReceiver(this.manager.getReceiver(), this.manager.getIntentFilter());
+        }
+
+        /**
+         * Unregister the receiver when app suspended
+         * @param owner
+         */
+        @Override
+        public void onPause(@NonNull LifecycleOwner owner) {
+            this.manager.getContext().unregisterReceiver(receiver);
+        }
     }
 }
+

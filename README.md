@@ -4,7 +4,7 @@ A SJSU CS Systems Group Disconnected Data Distribution project under Prof. Ben R
 
 ## About:
 
-- This repository contains code salvaged from https://github.com/SJSU-CS-systems-group/WiFiDirect. See that repo for a full summary. This code contains a simple android app to test the sjsu.ddd.android.wifidirect package located under app/src/main/java in this repo.
+- This repository contains WifiDirect code salvaged from https://github.com/SJSU-CS-systems-group/WiFiDirect. This code contains a simple android app to test the sjsu.ddd.android.wifidirect package located under app/src/main/java in this repo.
  
 
 ## Requirements:
@@ -38,4 +38,4 @@ Ask Ben for permission :)
 
 - Android Studio likes to change it's UI every couple of years, so try to find Android Studio tutorials at most 1 -2 years before the time you are currently reading this.
 
-
+Good Luck!

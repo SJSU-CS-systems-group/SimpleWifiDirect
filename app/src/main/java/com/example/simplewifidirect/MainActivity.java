@@ -12,9 +12,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 
+import sjsu.ddd.android.wifidirect.WifiDirectBroadcastReceiver;
 import sjsu.ddd.android.wifidirect.WifiDirectManager;
 
 /**
@@ -50,12 +52,30 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        final Button gPeerButton = findViewById(R.id.getPeers);
+        gPeerButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ArrayList<WifiP2pDevice> devices = wifiDirectManager.getPeerList();
+                Log.d(TAG, "Logging Devices: \n");
+                if(devices.isEmpty()) {
+                    Log.d(TAG,"No devices found yet");
+                }
+                for(WifiP2pDevice d: devices) {
+                    Log.d(TAG, d.toString());
+                }
+            }
+        });
+
         final Button cGroupButton = findViewById(R.id.createGroup);
         cGroupButton.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.Q)
             @Override
             public void onClick(View view) {
-                CompletableFuture<Boolean> completedFuture = wifiDirectManager.createGroup();
+                String networkName = "DIRECT-XY-TestNetwork123";
+                String password = "123456789";
+                CompletableFuture<Boolean> completedFuture = wifiDirectManager.createGroup(
+                        networkName, password);
                 completedFuture.thenApply((b) -> {
                     Toast.makeText(MainActivity.this, "Did CreateGroup succeed?: " + b, Toast.LENGTH_SHORT).show();
                     return b;
@@ -96,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     return b;
                 });
-                String message = "I tried making a group! ";
+                String message = "I tried requsting the group! ";
                 Log.d(TAG, message);
             }
         });
