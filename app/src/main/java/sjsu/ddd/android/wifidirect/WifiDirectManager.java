@@ -44,6 +44,8 @@ public class WifiDirectManager implements WifiP2pManager.ConnectionInfoListener,
     private WifiDirectBroadcastReceiver receiver;
     private ArrayList<WifiP2pDevice> discoveredPeers;
     private String wifiDirectGroupHostIP;
+    private String groupHostInfo;
+    private boolean isConnected;
 
     /**
      * Ctor
@@ -68,6 +70,8 @@ public class WifiDirectManager implements WifiP2pManager.ConnectionInfoListener,
 
         this.discoveredPeers = new ArrayList<WifiP2pDevice>();
         this.wifiDirectGroupHostIP = "";
+        this.groupHostInfo ="";
+        this.isConnected = false;
     }
 
     /**
@@ -184,7 +188,7 @@ public class WifiDirectManager implements WifiP2pManager.ConnectionInfoListener,
             return cBuilder.build();
         }
         catch(Exception e) {
-            Log.d("wDebug", "exception " + e) ;
+            Log.d("wDebug", "BuildGroupConfigexception " + e) ;
         }
         return null;
     }
@@ -251,23 +255,30 @@ public class WifiDirectManager implements WifiP2pManager.ConnectionInfoListener,
         return cFuture;
     }
 
+
     /**
      * Get the config of this WifiP2pDevice
      * @param device  WifiDirect device we want to make a config of
-     * @param isOwner Do we want to make device we're connect to group owner?
+     * @param isOwner Do we want to make device we're connect to the group owner?
      * @return WifiP2PConfig ready to be called by manager.connect()
      */
     public WifiP2pConfig makeConfig(WifiP2pDevice device, boolean isOwner) {
-        WifiP2pConfig config = new WifiP2pConfig();
-        config.deviceAddress = device.deviceAddress;
-        config.wps.setup = WpsInfo.PBC;
-        if(isOwner) {
-            config.groupOwnerIntent = WifiP2pConfig.GROUP_OWNER_INTENT_MAX;
+        try {
+            WifiP2pConfig config =  new WifiP2pConfig();
+            config.deviceAddress = device.deviceAddress;
+            config.wps.setup = WpsInfo.PBC;
+            if(isOwner) {
+                config.groupOwnerIntent = WifiP2pConfig.GROUP_OWNER_INTENT_MAX;
+            }
+            else {
+                config.groupOwnerIntent = WifiP2pConfig.GROUP_OWNER_INTENT_MIN;
+            }
+            return config;
         }
-        else {
-            config.groupOwnerIntent = WifiP2pConfig.GROUP_OWNER_INTENT_MIN;
+        catch(Exception e) {
+            Log.d("wDebug", "makeConfigException " + e) ;
         }
-        return config;
+        return null;
     }
 
     public ArrayList<WifiP2pDevice> getPeerList() {
@@ -281,7 +292,7 @@ public class WifiDirectManager implements WifiP2pManager.ConnectionInfoListener,
     @Override
     public void onConnectionInfoAvailable(WifiP2pInfo info) {
         String hostIP = info.groupOwnerAddress.getHostAddress();
-        Log.d(TAG, "This is the group host IP: " + hostIP);
+        this.groupHostInfo = info.toString();
         this.wifiDirectGroupHostIP = hostIP;
     }
 
@@ -307,6 +318,23 @@ public class WifiDirectManager implements WifiP2pManager.ConnectionInfoListener,
      * @return this IntentFilter
      */
     public IntentFilter getIntentFilter() { return this.intentFilter; }
+
+    public String getGroupHostIP() {
+        if(this.isConnected) {
+            Log.d(TAG,"Group Host Info: "+ this.groupHostInfo);
+            return this.wifiDirectGroupHostIP;
+        }
+        else {
+            this.wifiDirectGroupHostIP = "";
+            this.groupHostInfo = "";
+            Log.d(TAG, "This device is currently not connected");
+            return "";
+        }
+    }
+
+    public void setConnected(boolean b) { this.isConnected = b; }
+
+    public boolean isConnected() { return this.isConnected; }
 
     /**
      * Get the BroadCastReceiver

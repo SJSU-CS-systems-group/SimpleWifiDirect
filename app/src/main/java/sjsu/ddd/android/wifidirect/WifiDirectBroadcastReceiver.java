@@ -87,11 +87,12 @@ public class WifiDirectBroadcastReceiver extends BroadcastReceiver {
             if (networkInfo.isConnected()) {
                 // we are connected, request connection
                 // info to find group owner IP
-
+                this.manager.setConnected(true);
                this.manager.getManager().requestConnectionInfo(this.manager.getChannel(), this.manager);
             }
         else {
                 // It's a disconnect
+                this.manager.setConnected(true);
                 Log.d(this.manager.TAG,
                         "WIFI_P2P_CONNECTION_CHANGED_ACTION disconnected");
             }

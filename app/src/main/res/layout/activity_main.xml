@@ -7,73 +7,88 @@
     tools:context=".MainActivity">
 
     <Button
-        android:id="@+id/getPeers"
-        android:layout_width="208dp"
-        android:layout_height="105dp"
-        android:text="getPeers"
+        android:id="@+id/getGroupHostIP"
+        android:layout_width="202dp"
+        android:layout_height="97dp"
+        android:text="getGroupHostIP"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintHorizontal_bias="0.457"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.207" />
+        app:layout_constraintVertical_bias="0.472" />
+
+    <Button
+        android:id="@+id/getPeers"
+        android:layout_width="178dp"
+        android:layout_height="70dp"
+        android:text="getPeers"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.442"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.177" />
 
     <Button
         android:id="@+id/removeGroup"
-        android:layout_width="208dp"
-        android:layout_height="105dp"
+        android:layout_width="150dp"
+        android:layout_height="67dp"
         android:text="removeGroup"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintHorizontal_bias="0.429"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.678" />
+        app:layout_constraintVertical_bias="0.632" />
 
     <Button
         android:id="@+id/requestGroupInfo"
-        android:layout_width="208dp"
-        android:layout_height="105dp"
+        android:layout_width="202dp"
+        android:layout_height="91dp"
         android:text="requestGroupInfo"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintHorizontal_bias="0.492"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.974" />
+        app:layout_constraintVertical_bias="0.951" />
 
     <Button
         android:id="@+id/createGroup"
-        android:layout_width="208dp"
-        android:layout_height="105dp"
+        android:layout_width="175dp"
+        android:layout_height="67dp"
         android:text="createGroup"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintHorizontal_bias="0.449"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.4" />
+        app:layout_constraintVertical_bias="0.768" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
+    <Button
+        android:id="@+id/connectToHost"
+        android:layout_width="173dp"
+        android:layout_height="73dp"
+        android:text="connectToHost"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.444"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.315" />
 
     <Button
         android:id="@+id/discoverPeers"
-        android:layout_width="208dp"
-        android:layout_height="105dp"
+        android:layout_width="185dp"
+        android:layout_height="82dp"
         android:text="discoverPeers"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintHorizontal_bias="0.455"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.025" />
+        app:layout_constraintVertical_bias="0.024" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

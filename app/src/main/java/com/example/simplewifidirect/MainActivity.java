@@ -3,6 +3,7 @@ package com.example.simplewifidirect;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pGroup;
 import android.os.Build;
@@ -66,6 +67,40 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        // click discover peers first
+        // will search through list of found devices and connect to
+        // a device with the sjsu host name
+        String SJSUHostDeviceName = "sjsu_host";
+        final Button connectToHostPeerButton = findViewById(R.id.connectToHost);
+        connectToHostPeerButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ArrayList<WifiP2pDevice> devices = wifiDirectManager.getPeerList();
+                Log.d(TAG, "Logging Devices: \n");
+                if(devices.isEmpty()) {
+                    Log.d(TAG,"No devices found yet");
+                }
+                for(WifiP2pDevice d: devices) {
+                    if(d.deviceName.contains(SJSUHostDeviceName))
+                        wifiDirectManager.connect(wifiDirectManager.makeConfig(
+                                d, false));
+                    }
+                    //Log.d(TAG, d.toString());
+                }
+        });
+
+        final Button getHostGroupButton = findViewById(R.id.getGroupHostIP);
+        getHostGroupButton.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.Q)
+            @Override
+            public void onClick(View view) {
+                String hostIP = wifiDirectManager.getGroupHostIP();
+                Toast.makeText(MainActivity.this, "Group Host IP: " + hostIP, Toast.LENGTH_SHORT).show();
+                Log.d(TAG, "The group host IP is " + hostIP);
+            }
+        });
+
 
         final Button cGroupButton = findViewById(R.id.createGroup);
         cGroupButton.setOnClickListener(new View.OnClickListener() {
