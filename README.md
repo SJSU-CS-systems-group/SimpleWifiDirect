@@ -21,7 +21,7 @@ git clone https://github.com/SJSU-CS-systems-group/SimpleWifiDirect
 
 - If you already have a project opened up in Android Studio go to the top left under File > New > Import Project and click on the folder containing this repository.
 
-- A window containing the project should pop up and android studio should run the Gradle Sync to build the project automatically. At the top of the window go there should an option Build > Run Generate Sources Gradle Tasks. NOTE: SJSU Wi-Fi as of 9-15-2021 apparently blocks Gradle from syncing and downloading needed dependencies. Recommend doing this part on a non SJSU Wi-Fi network or by hotspotting your smartphone using cellular data.
+- A window containing the project should pop up and android studio should run the Gradle Sync to build the project automatically. At the top of the window go there should an option Build > Run Generate Sources Gradle Tasks. NOTE: SJSU Wi-Fi as of 9-15-2021 apparently blocks Gradle from syncing and downloading needed dependencies. Recommend doing this part on a non- SJSU Wi-Fi network or by hotspotting your smartphone using cellular data.
 
 - After the Gradle Sync is finished, connect your Android smartphone directly to your computer. On your Android device go to Settings > Developer options and then click to enable USB debugging. If every is working correctly somewhere to the top right of your screen in Android Studio should display your phone name.
 
@@ -38,6 +38,6 @@ Ask Ben for permission :)
 
 - Android Studio likes to change it's UI every couple of years, so try to find Android Studio tutorials at most 1 -2 years before the time you are currently reading this.
 
-- See SimpleWifiDirectGuide for a companion reading piece for this app.
+- See SimpleWifiDirectGuide.pdf for a companion guide for understanding this app.
 
 - Good Luck!
