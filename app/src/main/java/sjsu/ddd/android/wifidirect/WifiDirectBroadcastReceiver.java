@@ -92,7 +92,7 @@ public class WifiDirectBroadcastReceiver extends BroadcastReceiver {
             }
         else {
                 // It's a disconnect
-                this.manager.setConnected(true);
+                this.manager.setConnected(false);
                 Log.d(this.manager.TAG,
                         "WIFI_P2P_CONNECTION_CHANGED_ACTION disconnected");
             }

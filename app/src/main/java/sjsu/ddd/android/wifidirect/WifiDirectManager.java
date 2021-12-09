@@ -259,7 +259,8 @@ public class WifiDirectManager implements WifiP2pManager.ConnectionInfoListener,
     /**
      * Get the config of this WifiP2pDevice
      * @param device  WifiDirect device we want to make a config of
-     * @param isOwner Do we want to make device we're connect to the group owner?
+     * @param isOwner true if we want THIS device to be host false if
+     *                the device we are connecting to is going to be the host
      * @return WifiP2PConfig ready to be called by manager.connect()
      */
     public WifiP2pConfig makeConfig(WifiP2pDevice device, boolean isOwner) {
@@ -281,6 +282,10 @@ public class WifiDirectManager implements WifiP2pManager.ConnectionInfoListener,
         return null;
     }
 
+    /**
+     * Getter for the list of discoveredPeers
+     * @return return ArrayList of discovered Wi-Fi Direct compatible devices
+     */
     public ArrayList<WifiP2pDevice> getPeerList() {
      return this.discoveredPeers;
     }
@@ -332,8 +337,16 @@ public class WifiDirectManager implements WifiP2pManager.ConnectionInfoListener,
         }
     }
 
+    /**
+     * Set if this device is connected to a Wi-Fi Direct Group
+     * @param b true if connected false otherwise
+     */
     public void setConnected(boolean b) { this.isConnected = b; }
 
+    /**
+     * Check if this device is connected to a Wi-Fi Direct group
+     * @return true if connected to a group false otherwise
+     */
     public boolean isConnected() { return this.isConnected; }
 
     /**

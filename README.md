@@ -38,4 +38,6 @@ Ask Ben for permission :)
 
 - Android Studio likes to change it's UI every couple of years, so try to find Android Studio tutorials at most 1 -2 years before the time you are currently reading this.
 
-Good Luck!
+- See SimpleWifiDirectGuide for a companion reading piece for this app.
+
+- Good Luck!

@@ -35,10 +35,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // 3. Initialize the manager here
+        // 3.  We Initialize the manager here
         wifiDirectManager = new WifiDirectManager(this.getApplication(), this.getLifecycle());
 
-        // button for showing off discover peers
+        // 4. Buttons to test various WifiDirect functionality
+
+        // DISCOVERPEERS button for discovering peers
         final Button dPeerButton = findViewById(R.id.discoverPeers);
         dPeerButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -53,6 +55,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // GETPEERS button for retrieving the list of peers
+        // after clicking discover peers
         final Button gPeerButton = findViewById(R.id.getPeers);
         gPeerButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -68,9 +72,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // click discover peers first
-        // will search through list of found devices and connect to
-        // a device with the sjsu host name
+        // After clicking the DISCOVERPEERS button
+        // this CONNECTTOHOST button will search through list of found devices
+        // and connect to a device with the sjsu host name
         String SJSUHostDeviceName = "sjsu_host";
         final Button connectToHostPeerButton = findViewById(R.id.connectToHost);
         connectToHostPeerButton.setOnClickListener(new View.OnClickListener() {
@@ -86,12 +90,13 @@ public class MainActivity extends AppCompatActivity {
                         wifiDirectManager.connect(wifiDirectManager.makeConfig(
                                 d, false));
                     }
-                    //Log.d(TAG, d.toString());
                 }
         });
 
-        final Button getHostGroupButton = findViewById(R.id.getGroupHostIP);
-        getHostGroupButton.setOnClickListener(new View.OnClickListener() {
+        // GETGROUPHOSTIP button
+        // This button gets the IP of the host of the WifiDirect Group
+        final Button getGroupHostIPButton = findViewById(R.id.getGroupHostIP);
+        getGroupHostIPButton.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.Q)
             @Override
             public void onClick(View view) {
@@ -101,7 +106,28 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // REMOVEGROUP BUTTON
+        // Remove this device from the Wi-Fi Direct group.
+        // Group is disbanded if this device is the owner
+        // If the device is a client it will simply leave the group.
+        final Button rmButton = findViewById(R.id.removeGroup);
+        rmButton.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.Q)
+            @Override
+            public void onClick(View view) {
+                CompletableFuture<Boolean> completedFuture = wifiDirectManager.removeGroup();
+                completedFuture.thenApply((b) -> {
+                    Toast.makeText(MainActivity.this, "Did removeGroup succeed?: " + b, Toast.LENGTH_SHORT).show();
+                    return b;
+                });
+                String message = "I tried removing a group! ";
+                Log.d(TAG, message);
+            }
+        });
 
+        // CREATEGROUP Button
+        // Legacy Wi-Fi Direct group creation
+        // Group acts like a Wireless access point
         final Button cGroupButton = findViewById(R.id.createGroup);
         cGroupButton.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.Q)
@@ -120,21 +146,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        final Button rmButton = findViewById(R.id.removeGroup);
-        rmButton.setOnClickListener(new View.OnClickListener() {
-            @RequiresApi(api = Build.VERSION_CODES.Q)
-            @Override
-            public void onClick(View view) {
-                CompletableFuture<Boolean> completedFuture = wifiDirectManager.removeGroup();
-                completedFuture.thenApply((b) -> {
-                    Toast.makeText(MainActivity.this, "Did removeGroup succeed?: " + b, Toast.LENGTH_SHORT).show();
-                    return b;
-                });
-                String message = "I tried removing a group! ";
-                Log.d(TAG, message);
-            }
-        });
-
+        // REQUESTGROUPINFO Button
+        // Request the list of devices connected to
+        // a Wi-Fi Direct Group.
         final Button cRButton = findViewById(R.id.requestGroupInfo);
         cRButton.setOnClickListener(new View.OnClickListener() {
             @Override
